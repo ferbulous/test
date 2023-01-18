@@ -1,0 +1,118 @@
+substitutions:
+  devicename: bulb1
+  wifichannel: "7"
+
+esphome:
+  name: light
+  platform: ESP8266
+  board: esp01_1m
+  includes:
+  - lib/MeshRC.h
+  - lib/esp_now_light.h
+  libraries:
+  - ESP8266WiFi
+
+ota:
+  password: ""
+
+web_server:
+  port: 80
+    
+sensor:
+  - platform: uptime
+    name: smartrul Uptime
+    
+# Individual text sensors
+text_sensor:
+# Reports the ESPHome Version with compile date
+- platform: version
+  name: smartrul ESPHome Version
+
+# Output pins
+output:
+  - platform: esp8266_pwm
+    id: red_color
+    pin: GPIO4
+    inverted: False
+  - platform: esp8266_pwm
+    id: green_color
+    pin: GPIO12
+    inverted: False
+  - platform: esp8266_pwm
+    id: blue_color
+    pin: GPIO14
+    inverted: False
+  - platform: esp8266_pwm
+    id: cold_white
+    pin: GPIO5
+    inverted: False
+  - platform: esp8266_pwm
+    id: warm_white
+    pin: GPIO13
+    inverted: False
+
+#light device
+light:
+  - platform: rgbww
+    name: "smartrul Lights"
+    red: red_color
+    green: green_color
+    blue: blue_color
+    cold_white: cold_white
+    warm_white: warm_white
+    cold_white_color_temperature: 6536 K
+    warm_white_color_temperature: 2000 K
+    color_interlock: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    effects:
+      # Use default parameters:
+      - random:
+      # Customize parameters
+      - random:
+          name: "My Slow Random Effect"
+          transition_length: 30s
+          update_interval: 30s
+      - random:
+          name: "My Fast Random Effect"
+          transition_length: 4s
+          update_interval: 5s
+
+
+# Enable logging
+logger:
+
+interval:
+  - interval: 10sec
+    then:
+      - lambda: |- 
+          ping();
+      - logger.log: 
+          format: "Sending Ping"
+          tag: "MeshRC"
+
+custom_component:
+- lambda: |-
+    MeshRC::setupwifi(${wifichannel});
+    
+    MeshRC::begin();
+    ESP_LOGD("custom", "Initialising MeshRC");
+    
+    MeshRC::on("", [](uint8_t* data, uint8_t size) {
+      // Process an incomming message, if it is directed to us, then we handle it.
+      ESP_LOGD("custom", "Receiving any MeshRC message");
+      uint8_t dest[6];
+      get_mac_address_raw(dest);
+      if (size > 6 && MeshRC::equals(data, dest, 6) && (data[6] == '>')) {
+          uint8_t* newData = &data[5];
+          ESP_LOGD("custom", "Receiving meshRC message");
+          newData[0] = '#';
+          MeshRC::recvHandler(MeshRC::sender, newData, size - 5);
+          // MeshRC::send("#<OK");
+      }
+    });
+    
+    MeshRC::on("#>SETLIGHT1", [](uint8_t* data, uint8_t size) {
+      AddressableLightState* dest = id(light_1);
+      parseLightRGB(data, size, dest);
+    });
+    return {};
