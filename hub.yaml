@@ -34,9 +34,7 @@ wifi:
 
   # Enable fallback hotspot in case wifi connection fails
   ap:
-    ssid: "$devicename Fallback Hotspot"
-    password: "0122345318"
-    
+  
   power_save_mode: none
 
  globals:
