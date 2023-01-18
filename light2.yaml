@@ -20,13 +20,13 @@ web_server:
     
 sensor:
   - platform: uptime
-    name: smartrul Uptime
+    name: smartrul2 Uptime
     
 # Individual text sensors
 text_sensor:
 # Reports the ESPHome Version with compile date
 - platform: version
-  name: smartrul ESPHome Version
+  name: smartrul2 ESPHome Version
 
 # Output pins
 output:
@@ -54,7 +54,7 @@ output:
 #light device
 light:
   - platform: rgbww
-    name: "smartrul Lights"
+    name: "smartrul2 Lights"
     red: red_color
     green: green_color
     blue: blue_color
