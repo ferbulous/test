@@ -1,0 +1,11 @@
+{
+  "name": "ESPHome + Docker",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "forwardPorts": [6052],
+  "postCreateCommand": "docker version"
+}
